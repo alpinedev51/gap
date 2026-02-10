@@ -1,0 +1,11 @@
+<h1 align="center">SaMD-GAP: Spectral Recovery and Manifold Projection Dynamics in Generative Adversarial Purification</h1>
+
+
+Code repository for research project titled:
+
+> SaMD-GAP: Spectral Recovery and Manifold Projection Dynamics in Generative Adversarial Purification
+>
+> [Austin Barton](github.com/alpinedev51), Joshua Culwell
+>
+> Abstract (WIP): This project is an empirical comparative analysis of generative algorithms for adversarial purification. Specifically, we compare single-shot reconstruction via Denoising Autoencoders (DAEs) and iterative score-based projection with Diffusion Models. Our analysis is twofold. First, we evaluate these methods against Projected Gradient Descent (PGD) attacks using downstream classification evaluation metrics on purified samples and conduct spectral analysis via Power Spectral Density (PSD) to quantify and visualize how each method manages high-frequency adversarial energy (which adversarially crafted inputs using methods such as PGD or FGSM consist of). Second, we investigate the underlying geometric mechanics by visualizing projection dynamics in relation to the data manifold. The Manifold Hypothesis suggests that high-dimensional data actually lie on a much lower-dimensional manifold. To investigate the geometric mechanics of generative adversarial purification, we employ a controlled synthetic environment for experimentation. In particular, we use a known 2D nonlinear manifold embedded in a 3D input space and then simulate "off-manifold" data inputs to study the projection trajectories of each method. We hypothesize that because DAEs minimize $L_2$ reconstruction error, they project inputs onto the Euclidean mean of the posterior distribution. For non-linear manifolds, this mean often lies off-manifold or in a low-density region. In contrast, we hypothesize that Diffusion Models follow the learned score function onto and along the manifold surface, which recovers high frequency features. This geometric analysis aims to theoretically investigate the project's overarching hypothesis that diffusion models achieve adversarial robustness by regenerating semantically consistent high-frequency features rather than removing or averaging them.
+
