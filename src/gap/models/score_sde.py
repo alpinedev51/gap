@@ -17,7 +17,7 @@ class ScoreModel3D(nn.Module):
         )
 
     def forward(self, x, sigma):
-        # Tip: Passing log(sigma) helps the network learn 
+        # Tip: Passing log(sigma) helps the network learn
         # exponential scales of noise better than raw sigma
         log_sigma = torch.log(sigma).view(-1, 1).expand(x.shape[0], 1)
         inputs = torch.cat([x, log_sigma], dim=-1)
@@ -50,7 +50,7 @@ class GScoreModel3D(nn.Module):
         )
 
     def forward(self, x, sigma):
-        embed_sigma = self.embed(sigma.squeeze()) # [Batch, 256]
+        embed_sigma = self.embed(sigma.view(-1)) # [Batch, 256]
         embed_x = self.input_proj(x)              # [Batch, 256]
 
         h = torch.cat([embed_x, embed_sigma], dim=-1)

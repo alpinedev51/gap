@@ -12,4 +12,4 @@ class EMA:
     def apply_shadow(self, model):
         for name, param in model.named_parameters():
             if name in self.shadow:
-                param.data = self.shadow[name]
+                param.data.copy_(self.shadow[name])
