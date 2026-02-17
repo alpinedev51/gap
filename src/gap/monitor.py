@@ -6,7 +6,7 @@ def print_gpu_memory_stats():
     Prints a breakdown of the current GPU memory usage.
     """
     if not torch.cuda.is_available():
-        print("🚫 GPU not available. Running on CPU.")
+        print("GPU not available. Running on CPU.")
         return
 
     gpu_name = torch.cuda.get_device_name(0)
