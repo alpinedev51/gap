@@ -11,3 +11,6 @@ wheels/
 
 oxford-iiit-pet/
 
+*.DS_Store
+
+saved_models/*
