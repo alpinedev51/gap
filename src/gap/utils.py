@@ -86,7 +86,7 @@ def save_experiment(model, model_name, config, class_names=None):
         json.dump(config, f, indent=4)
 
     if class_names is not None:
-        config['classes'] = list(class_names)
+        config["classes"] = list(class_names)
 
     # 2. Save Model Weights (Checks if it's PyTorch or Scikit-Learn)
     if isinstance(model, torch.nn.Module):

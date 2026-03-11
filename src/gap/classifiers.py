@@ -38,6 +38,7 @@ class CustomCNN(nn.Module):
     Linear 1:    (Batch, 512)
     Linear 2:    (Batch, num_classes)
     """
+
     def __init__(self, num_classes):
         super(CustomCNN, self).__init__()
 
@@ -48,35 +49,31 @@ class CustomCNN(nn.Module):
             nn.Conv2d(3, 32, kernel_size=3, padding=1),
             nn.BatchNorm2d(32),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(2, 2), 
-
+            nn.MaxPool2d(2, 2),
             # Block 2 (Layer 2)
             # Input: (B, 32, 112, 112) -> Conv -> (B, 64, 112, 112) -> Pool -> (B, 64, 56, 56)
             nn.Conv2d(32, 64, kernel_size=3, padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(2, 2),
-
             # Block 3 (Layer 3)
             # Input: (B, 64, 56, 56) -> Conv -> (B, 128, 56, 56) -> Pool -> (B, 128, 28, 28)
             nn.Conv2d(64, 128, kernel_size=3, padding=1),
             nn.BatchNorm2d(128),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(2, 2),
-
             # Block 4 (Layer 4)
             # Input: (B, 128, 28, 28) -> Conv -> (B, 256, 28, 28) -> Pool -> (B, 256, 14, 14)
             nn.Conv2d(128, 256, kernel_size=3, padding=1),
             nn.BatchNorm2d(256),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(2, 2),
-
             # Block 5 (Layer 5) - Extracts highly complex semantic features
             # Input: (B, 256, 14, 14) -> Conv -> (B, 512, 14, 14) -> Pool -> (B, 512, 7, 7)
             nn.Conv2d(256, 512, kernel_size=3, padding=1),
             nn.BatchNorm2d(512),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(2, 2)
+            nn.MaxPool2d(2, 2),
         )
 
         # Adaptive Pooling: Safely forces any input to exactly 512 channels x 2 x 2 spatial size
@@ -87,17 +84,15 @@ class CustomCNN(nn.Module):
         self.classifier = nn.Sequential(
             # Input: (B, 512, 2, 2) -> Output: (B, 2048)
             nn.Flatten(),
-
             # Layer 6
             # Input: (B, 2048) -> Output: (B, 512)
             nn.Linear(512 * 2 * 2, 512),
-            nn.BatchNorm1d(512), 
+            nn.BatchNorm1d(512),
             nn.ReLU(inplace=True),
             nn.Dropout(0.5),
-
             # Layer 7 (Output)
             # Input: (B, 512) -> Output: (B, num_classes)
-            nn.Linear(512, num_classes)
+            nn.Linear(512, num_classes),
         )
 
     def forward(self, x):
@@ -122,7 +117,7 @@ def train_cnn(model, train_loader, val_loader, epochs, learning_rate, device):
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
 
-    history = {'train_loss': [], 'train_acc': [], 'val_loss': [], 'val_acc': []}
+    history = {"train_loss": [], "train_acc": [], "val_loss": [], "val_acc": []}
 
     print(f"Starting Training for {epochs} Epochs...\n")
 
@@ -145,7 +140,7 @@ def train_cnn(model, train_loader, val_loader, epochs, learning_rate, device):
 
             train_loss += loss.item() * images.size(0)
             _, preds = torch.max(outputs, 1)
-            train_correct += torch.sum(preds == labels.data).item() 
+            train_correct += torch.sum(preds == labels.data).item()
 
         epoch_train_loss = train_loss / len(train_loader.dataset)
         epoch_train_acc = train_correct / len(train_loader.dataset)
@@ -155,7 +150,7 @@ def train_cnn(model, train_loader, val_loader, epochs, learning_rate, device):
         # ========================================
         model.eval()
         val_loss = 0.0
-        val_correct = 0 
+        val_correct = 0
 
         with torch.no_grad():
             for images, labels in val_loader:
@@ -171,14 +166,16 @@ def train_cnn(model, train_loader, val_loader, epochs, learning_rate, device):
         epoch_val_loss = val_loss / len(val_loader.dataset)
         epoch_val_acc = val_correct / len(val_loader.dataset)
 
-        history['train_loss'].append(epoch_train_loss)
-        history['train_acc'].append(epoch_train_acc)
-        history['val_loss'].append(epoch_val_loss)
-        history['val_acc'].append(epoch_val_acc)
+        history["train_loss"].append(epoch_train_loss)
+        history["train_acc"].append(epoch_train_acc)
+        history["val_loss"].append(epoch_val_loss)
+        history["val_acc"].append(epoch_val_acc)
 
-        print(f"Epoch [{epoch+1:02d}/{epochs:02d}] | "
-              f"Train Loss: {epoch_train_loss:.4f} Acc: {epoch_train_acc:.4f} | "
-              f"Val Loss: {epoch_val_loss:.4f} Acc: {epoch_val_acc:.4f}")
+        print(
+            f"Epoch [{epoch + 1:02d}/{epochs:02d}] | "
+            f"Train Loss: {epoch_train_loss:.4f} Acc: {epoch_train_acc:.4f} | "
+            f"Val Loss: {epoch_val_loss:.4f} Acc: {epoch_val_acc:.4f}"
+        )
 
         # ========================================
         # 3. SAVE BEST MODEL
@@ -188,7 +185,9 @@ def train_cnn(model, train_loader, val_loader, epochs, learning_rate, device):
             best_model_wts = copy.deepcopy(model.state_dict())
             print(f"   Validation accuracy improved to {best_acc:.4f}!")
 
-    print(f"\nTraining Complete. Restoring best model weights (Val Acc: {best_acc:.4f})")
+    print(
+        f"\nTraining Complete. Restoring best model weights (Val Acc: {best_acc:.4f})"
+    )
     model.load_state_dict(best_model_wts)
 
     return model, history
@@ -212,26 +211,29 @@ def evaluate_cnn(model, test_loader, device):
     print(f"CNN Test Accuracy: {acc:.4f}")
     return all_labels, all_preds
 
+
 # ==========================================
 # 2. CLASSICAL MACHINE LEARNING (Scikit-Learn)
 # ==========================================
 
+
 def train_logistic_regression_cv(X_train, y_train, cv_folds=3, max_iter=500):
     """
-    Trains a Logistic Regression model using Cross-Validation to automatically 
+    Trains a Logistic Regression model using Cross-Validation to automatically
     find the best 'C' (inverse regularization strength) hyperparameter.
     """
     print(f"Training LogisticRegressionCV with {cv_folds} folds...")
     lrcv = LogisticRegressionCV(
-        Cs=10, 
-        cv=cv_folds, 
-        max_iter=max_iter, 
+        Cs=10,
+        cv=cv_folds,
+        max_iter=max_iter,
         n_jobs=-1,
-        random_state=42 # Added seed for reproducibility here too
+        random_state=42,  # Added seed for reproducibility here too
     )
     lrcv.fit(X_train, y_train)
     print(f"Best C parameters found (sample): {lrcv.C_[0]}")
     return lrcv
+
 
 def evaluate_classical_model(model, X_test, y_test, target_names=None):
     """Evaluates a Scikit-Learn model."""

@@ -14,7 +14,9 @@ class UniversalPredictor:
     def __init__(self, model_folder):
         self.model_folder = model_folder
         self.meta = self._load_meta()
-        self.device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        self.device = torch.device(
+            "mps" if torch.backends.mps.is_available() else "cpu"
+        )
         self.model = self._load_model()
 
     def _load_meta(self):
@@ -22,13 +24,13 @@ class UniversalPredictor:
             return json.load(f)
 
     def _load_model(self):
-        model_type = self.meta['model_type']
+        model_type = self.meta["model_type"]
 
         if model_type == "CustomCNN":
             # Reconstruct the architecture using metadata
             model = CustomCNN(
-                num_classes=len(self.meta.get('classes', [0]*37)), 
-                input_size=self.meta.get('image_size', 128)
+                num_classes=len(self.meta.get("classes", [0] * 37)),
+                input_size=self.meta.get("image_size", 128),
             )
             weights_path = os.path.join(self.model_folder, "weights.pth")
             model.load_state_dict(torch.load(weights_path, map_location=self.device))
@@ -45,16 +47,18 @@ class UniversalPredictor:
 
     def predict(self, image_path):
         """Takes a path to a new image and returns the predicted breed."""
-        img = Image.open(image_path).convert('RGB')
+        img = Image.open(image_path).convert("RGB")
 
-        if self.meta['model_type'] == "CustomCNN":
+        if self.meta["model_type"] == "CustomCNN":
             # CNN Pipeline
-            size = self.meta.get('image_size', 128)
-            transform = transforms.Compose([
-                transforms.Resize((size, size)),
-                transforms.ToTensor(),
-                transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
-            ])
+            size = self.meta.get("image_size", 128)
+            transform = transforms.Compose(
+                [
+                    transforms.Resize((size, size)),
+                    transforms.ToTensor(),
+                    transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
+                ]
+            )
             img_tensor = transform(img).unsqueeze(0).to(self.device)
 
             with torch.no_grad():
@@ -64,13 +68,14 @@ class UniversalPredictor:
 
         else:
             # Logistic Regression Pipeline
-            size = self.meta.get('image_size_flattened', 64)
+            size = self.meta.get("image_size_flattened", 64)
             img_flat = np.array(img.resize((size, size))).flatten() / 255.0
             class_idx = self.model.predict([img_flat])[0]
 
         # Map index back to name
-        breed_name = self.meta['classes'][class_idx]
+        breed_name = self.meta["classes"][class_idx]
         return breed_name
+
 
 if __name__ == "__main__":
     MY_MODEL_RUN = "../saved_models/CustomCNN_10Epochs_20260306_1620"
