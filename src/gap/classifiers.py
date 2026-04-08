@@ -96,15 +96,120 @@ class CustomCNN(nn.Module):
         )
 
     def forward(self, x):
-        # x starts as (Batch, 3, H, W)
         x = self.features(x)
-        x = self.adaptive_pool(x)
+        orig_device = x.device
+        if orig_device.type == "mps":
+            x = x.to("cpu")
+            x = self.adaptive_pool(x)
+            x = x.to(orig_device)
+        else:
+            x = self.adaptive_pool(x)
         x = self.classifier(x)
-        # x ends as (Batch, num_classes) containing raw logits
         return x
 
 
-def train_cnn(model, train_loader, val_loader, epochs, learning_rate, device):
+class SmallCNN(nn.Module):
+    """
+    A lightweight, dynamic CNN for rapid testing.
+    Standardized to match CustomCNN conventions (Adaptive Pooling, dynamic classes).
+    """
+
+    def __init__(self, num_classes, channels=32, depth=2):
+        super().__init__()
+        layers = []
+        in_c = 3
+
+        for _ in range(depth):
+            layers += [
+                nn.Conv2d(in_c, channels, kernel_size=3, padding=1),
+                nn.ReLU(inplace=True),
+                nn.MaxPool2d(2),
+            ]
+            in_c = channels
+
+        self.features = nn.Sequential(*layers)
+
+        # Replaced dummy pass with Adaptive Pooling
+        self.adaptive_pool = nn.AdaptiveAvgPool2d((2, 2))
+
+        # Replaced hardcoded '10' with num_classes
+        self.classifier = nn.Sequential(
+            nn.Flatten(), nn.Linear(channels * 2 * 2, num_classes)
+        )
+
+    def forward(self, x):
+        x = self.features(x)
+
+        orig_device = x.device
+        if orig_device.type == "mps":
+            x = x.to("cpu")
+            x = self.adaptive_pool(x)
+            x = x.to(orig_device)
+        else:
+            x = self.adaptive_pool(x)
+
+        return self.classifier(x)
+
+
+class BiggerCNN(nn.Module):
+    """
+    A medium-capacity CNN with Batch Normalization.
+    Standardized to match CustomCNN conventions.
+    """
+
+    def __init__(self, num_classes, channels=64, depth=3):
+        super().__init__()
+        layers = []
+        in_c = 3
+
+        for _ in range(depth):
+            layers += [
+                nn.Conv2d(in_c, channels, kernel_size=3, padding=1),
+                nn.BatchNorm2d(channels),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(channels, channels, kernel_size=3, padding=1),
+                nn.BatchNorm2d(channels),
+                nn.ReLU(inplace=True),
+                nn.MaxPool2d(2),
+            ]
+            in_c = channels
+
+        self.features = nn.Sequential(*layers)
+
+        # Replaced dummy pass with Adaptive Pooling
+        self.adaptive_pool = nn.AdaptiveAvgPool2d((2, 2))
+
+        self.classifier = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(channels * 2 * 2, 256),
+            nn.ReLU(inplace=True),
+            nn.Dropout(0.3),
+            nn.Linear(256, num_classes),  # Replaced hardcoded '10'
+        )
+
+    def forward(self, x):
+        x = self.features(x)
+
+        orig_device = x.device
+        if orig_device.type == "mps":
+            x = x.to("cpu")
+            x = self.adaptive_pool(x)
+            x = x.to(orig_device)
+        else:
+            x = self.adaptive_pool(x)
+
+        return self.classifier(x)
+
+
+def train_cnn(
+    model,
+    train_loader,
+    val_loader,
+    epochs,
+    learning_rate,
+    device,
+    optimizer_type="Adam",
+):
     """
     Trains the PyTorch CNN and evaluates on the validation set per epoch.
     Automatically restores the best model weights based on validation accuracy.
@@ -112,7 +217,10 @@ def train_cnn(model, train_loader, val_loader, epochs, learning_rate, device):
     """
     model.to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    if optimizer_type.lower() == "sgd":
+        optimizer = optim.SGD(model.parameters(), lr=learning_rate)
+    else:
+        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0

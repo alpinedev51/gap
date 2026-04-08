@@ -82,7 +82,6 @@ if __name__ == "__main__":
 
     predictor = UniversalPredictor(MY_MODEL_RUN)
 
-    # TODO: Change path and test
     test_image = "path/to/some_random_dog_pic.jpg"
     if os.path.exists(test_image):
         result = predictor.predict(test_image)
