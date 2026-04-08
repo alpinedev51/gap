@@ -16,7 +16,7 @@ class AdversarialAttacker:
 
     def get_correct_subset_loader(self, dataloader: DataLoader) -> DataLoader:
         """
-        Filters the input DataLoader and returns a new DataLoader containing 
+        Filters the input DataLoader and returns a new DataLoader containing
         only the samples the model correctly classifies.
         """
         correct_images = []
@@ -28,26 +28,25 @@ class AdversarialAttacker:
                 images, labels = images.to(self.device), labels.to(self.device)
                 outputs = self.model(images)
                 _, preds = torch.max(outputs, 1)
-                
+
                 mask = preds.eq(labels)
-                
+
                 if mask.any():
                     correct_images.append(images[mask].cpu())
                     correct_labels.append(labels[mask].cpu())
 
         if not correct_images:
-            raise ValueError("Model classified 0 images correctly in the provided loader.")
+            raise ValueError(
+                "Model classified 0 images correctly in the provided loader."
+            )
 
         # Create new TensorDataset from correctly classified samples
         filtered_dataset = TensorDataset(
-            torch.cat(correct_images), 
-            torch.cat(correct_labels)
+            torch.cat(correct_images), torch.cat(correct_labels)
         )
 
         return DataLoader(
-            filtered_dataset, 
-            batch_size=dataloader.batch_size, 
-            shuffle=False
+            filtered_dataset, batch_size=dataloader.batch_size, shuffle=False
         )
 
     def fgsm_attack(
@@ -109,13 +108,10 @@ class AdversarialAttacker:
             eta = torch.clamp(adv_images - images, min=-epsilon, max=epsilon)
 
             # Apply perturbation and clamp to valid image range [-1, 1]
-            perturbed_images = torch.clamp(
-                images + eta, min=-1.0, max=1.0
-            ).detach_()
+            perturbed_images = torch.clamp(images + eta, min=-1.0, max=1.0).detach_()
             perturbed_images.requires_grad = True
 
         return perturbed_images
-
 
     def generate_adversarial_dataset(
         self, dataloader: DataLoader, attack_type: str = "pgd", **kwargs
@@ -146,7 +142,7 @@ class AdversarialAttacker:
 
         # Return a new dataloader matching the original batch size
         return DataLoader(adv_dataset, batch_size=dataloader.batch_size, shuffle=False)
-    
+
     def save_adversarial_loader(self, loader, path):
         # Save the underlying TensorDataset
         torch.save(loader.dataset, path)

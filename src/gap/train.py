@@ -4,7 +4,9 @@ import torch
 from gap.ema import EMA
 
 
-def train_score_model(model, dataloader, optimizer, device, epochs=100, ema_decay=0.999, log_interval=10):
+def train_score_model(
+    model, dataloader, optimizer, device, epochs=100, ema_decay=0.999, log_interval=10
+):
     """
     Main training loop.
     """
@@ -21,7 +23,9 @@ def train_score_model(model, dataloader, optimizer, device, epochs=100, ema_deca
             x_clean = data.to(device)
 
             # Sample log-sigma uniformly to cover all scales (0.01 to 1.0)
-            log_sigma = torch.rand(x_clean.shape[0], 1, device=device) * np.log(1.0/0.01) + np.log(0.01)
+            log_sigma = torch.rand(x_clean.shape[0], 1, device=device) * np.log(
+                1.0 / 0.01
+            ) + np.log(0.01)
             sigma = torch.exp(log_sigma)
 
             # Add Noise
