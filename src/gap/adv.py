@@ -14,6 +14,42 @@ class AdversarialAttacker:
         self.model.eval()  # Ensure model is in evaluation mode
         self.device = device
 
+    def get_correct_subset_loader(self, dataloader: DataLoader) -> DataLoader:
+        """
+        Filters the input DataLoader and returns a new DataLoader containing 
+        only the samples the model correctly classifies.
+        """
+        correct_images = []
+        correct_labels = []
+
+        print("Filtering for correctly classified samples...")
+        with torch.no_grad():
+            for images, labels in dataloader:
+                images, labels = images.to(self.device), labels.to(self.device)
+                outputs = self.model(images)
+                _, preds = torch.max(outputs, 1)
+                
+                mask = preds.eq(labels)
+                
+                if mask.any():
+                    correct_images.append(images[mask].cpu())
+                    correct_labels.append(labels[mask].cpu())
+
+        if not correct_images:
+            raise ValueError("Model classified 0 images correctly in the provided loader.")
+
+        # Create new TensorDataset from correctly classified samples
+        filtered_dataset = TensorDataset(
+            torch.cat(correct_images), 
+            torch.cat(correct_labels)
+        )
+
+        return DataLoader(
+            filtered_dataset, 
+            batch_size=dataloader.batch_size, 
+            shuffle=False
+        )
+
     def fgsm_attack(
         self, images: torch.Tensor, labels: torch.Tensor, epsilon: float = 0.03
     ) -> torch.Tensor:
@@ -110,3 +146,7 @@ class AdversarialAttacker:
 
         # Return a new dataloader matching the original batch size
         return DataLoader(adv_dataset, batch_size=dataloader.batch_size, shuffle=False)
+    
+    def save_adversarial_loader(self, loader, path):
+        # Save the underlying TensorDataset
+        torch.save(loader.dataset, path)
