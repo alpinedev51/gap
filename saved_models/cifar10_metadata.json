@@ -1,0 +1,10 @@
+{
+    "model_config": {
+        "lr": 0.0001838809343739058,
+        "channels": 96,
+        "depth": 4,
+        "optimizer": "adam",
+        "weight_decay": 0.0005
+    },
+    "test_accuracy": 0.8619
+}
