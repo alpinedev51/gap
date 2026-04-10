@@ -3,7 +3,7 @@
 
 Code repository for research project titled:
 
-> SaMD-GAP: Spectral Recovery and Manifold Projection Dynamics in Generative Adversarial Purification
+> SpectRA-GAP: Spectral Recovery Analysis of Generative Models in Adversarial Purification
 >
 > [Austin Barton](github.com/alpinedev51), Joshua Culwell
 >

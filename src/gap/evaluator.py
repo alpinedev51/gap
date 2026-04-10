@@ -39,8 +39,12 @@ class ModelEvaluator:
 
     def analyze_class_difficulty(self):
         """Prints text-based rankings of the easiest and hardest classes."""
-        report = classification_report(self.y_true, self.y_pred, target_names=self.classes, output_dict=True)
-        class_scores = {k: v['f1-score'] for k, v in report.items() if k in self.classes}
+        report = classification_report(
+            self.y_true, self.y_pred, target_names=self.classes, output_dict=True
+        )
+        class_scores = {
+            k: v["f1-score"] for k, v in report.items() if k in self.classes
+        }
 
         sorted_classes = sorted(class_scores.items(), key=lambda x: x[1])
         hardest = sorted_classes[:5]

@@ -11,11 +11,12 @@ def plot_confusion_matrix(y_true, y_pred, classes):
     fig, ax = plt.subplots(figsize=(16, 16))
 
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=classes)
-    disp.plot(cmap='Blues', ax=ax, xticks_rotation='vertical', colorbar=False)
+    disp.plot(cmap="Blues", ax=ax, xticks_rotation="vertical", colorbar=False)
 
-    plt.title('Confusion Matrix', fontsize=16)
+    plt.title("Confusion Matrix", fontsize=16)
     plt.tight_layout()
     plt.show()
+
 
 def plot_roc_auc(y_true, y_prob, num_classes):
     """Calculates and plots the Macro-Average ROC curve."""
@@ -38,17 +39,23 @@ def plot_roc_auc(y_true, y_prob, num_classes):
 
     # Plotting
     plt.figure(figsize=(10, 8))
-    plt.plot(all_fpr, mean_tpr, color='darkorange', linewidth=4, 
-             label=f'Macro-average ROC curve (AUC = {macro_auc:.3f})')
-    plt.plot([0, 1], [0, 1], 'k--', linewidth=2)
+    plt.plot(
+        all_fpr,
+        mean_tpr,
+        color="darkorange",
+        linewidth=4,
+        label=f"Macro-average ROC curve (AUC = {macro_auc:.3f})",
+    )
+    plt.plot([0, 1], [0, 1], "k--", linewidth=2)
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title('Multi-Class Receiver Operating Characteristic (ROC)')
+    plt.xlabel("False Positive Rate")
+    plt.ylabel("True Positive Rate")
+    plt.title("Multi-Class Receiver Operating Characteristic (ROC)")
     plt.legend(loc="lower right")
     plt.grid(alpha=0.3)
     plt.show()
+
 
 def visualize_random_predictions(model, dataset, classes, device, num_images=6):
     """Plots a grid of images with their predicted and actual labels."""
@@ -72,14 +79,14 @@ def visualize_random_predictions(model, dataset, classes, device, num_images=6):
         mean = np.array([0.5, 0.5, 0.5])
         std = np.array([0.5, 0.5, 0.5])
         img = std * img + mean
-        img = np.clip(img, 0, 1) 
+        img = np.clip(img, 0, 1)
 
         # labeling
         actual_name = classes[actual_label_idx]
         pred_name = classes[pred_idx.item()]
-        color = 'green' if actual_name == pred_name else 'red'
+        color = "green" if actual_name == pred_name else "red"
 
-        ax = fig.add_subplot(2, 3, i+1, xticks=[], yticks=[])
+        ax = fig.add_subplot(2, 3, i + 1, xticks=[], yticks=[])
         ax.imshow(img)
         ax.set_title(f"Pred: {pred_name}\nActual: {actual_name}", color=color)
     plt.show()

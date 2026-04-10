@@ -12,6 +12,7 @@ from torchvision import transforms
 
 class PetDataset(Dataset):
     """Custom PyTorch Dataset for the Oxford-IIIT Pets."""
+
     def __init__(self, dataframe, root_dir, transform=None):
         self.df = dataframe
         self.root_dir = root_dir
@@ -21,16 +22,18 @@ class PetDataset(Dataset):
         return len(self.df)
 
     def __getitem__(self, idx):
-        img_name = os.path.join(self.root_dir, self.df.iloc[idx]['filename'])
-        image = Image.open(img_name).convert('RGB')
-        label = self.df.iloc[idx]['label']
+        img_name = os.path.join(self.root_dir, self.df.iloc[idx]["filename"])
+        image = Image.open(img_name).convert("RGB")
+        label = self.df.iloc[idx]["label"]
 
         if self.transform:
             image = self.transform(image)
         return image, label
 
+
 class PetDataProcessor:
     """Manages data loading for both Deep Learning and Classical ML."""
+
     def __init__(self, data_dir, test_size=0.2, random_state=42):
         self.data_dir = data_dir
         self.encoder = LabelEncoder()
@@ -38,22 +41,26 @@ class PetDataProcessor:
         self.num_classes = len(self.encoder.classes_)
 
     def _prepare_dataframe(self, test_size, random_state):
-        all_files = [f for f in os.listdir(self.data_dir) if f.endswith('.jpg')]
+        all_files = [f for f in os.listdir(self.data_dir) if f.endswith(".jpg")]
         # Extract breed name
-        labels = [re.findall(r'^(.*)_\d+.jpg$', f)[0] for f in all_files]
+        labels = [re.findall(r"^(.*)_\d+.jpg$", f)[0] for f in all_files]
 
-        df = pd.DataFrame({'filename': all_files, 'label_name': labels})
-        df['label'] = self.encoder.fit_transform(df['label_name'])
+        df = pd.DataFrame({"filename": all_files, "label_name": labels})
+        df["label"] = self.encoder.fit_transform(df["label_name"])
 
-        return train_test_split(df, test_size=test_size, random_state=random_state, stratify=df['label'])
+        return train_test_split(
+            df, test_size=test_size, random_state=random_state, stratify=df["label"]
+        )
 
     def get_cnn_dataloaders(self, batch_size=32, img_size=224):
         """Returns PyTorch DataLoaders for CNNs."""
-        transform = transforms.Compose([
-            transforms.Resize((img_size, img_size)),
-            transforms.ToTensor(),
-            transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
-        ])
+        transform = transforms.Compose(
+            [
+                transforms.Resize((img_size, img_size)),
+                transforms.ToTensor(),
+                transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
+            ]
+        )
 
         train_ds = PetDataset(self.train_df, self.data_dir, transform)
         test_ds = PetDataset(self.test_df, self.data_dir, transform)
@@ -65,15 +72,16 @@ class PetDataProcessor:
 
     def get_flattened_data(self, img_size=64):
         """Returns flattened X, y NumPy arrays for Scikit-Learn.
-           Downscales images heavily to prevent RAM overload."""
+        Downscales images heavily to prevent RAM overload."""
+
         def _process_df(df):
             X, y = [], []
             for _, row in df.iterrows():
-                img_path = os.path.join(self.data_dir, row['filename'])
+                img_path = os.path.join(self.data_dir, row["filename"])
                 # Resize and flatten to a 1D array
-                img = Image.open(img_path).convert('RGB').resize((img_size, img_size))
+                img = Image.open(img_path).convert("RGB").resize((img_size, img_size))
                 X.append(np.array(img).flatten())
-                y.append(row['label'])
+                y.append(row["label"])
             return np.array(X), np.array(y)
 
         print("Flattening images for classical ML (this may take a minute)...")
