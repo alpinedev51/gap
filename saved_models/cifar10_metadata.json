@@ -4,7 +4,8 @@
         "channels": 96,
         "depth": 4,
         "optimizer": "adam",
-        "weight_decay": 0.0005
+        "weight_decay": 0.0005,
+        "num_classes": 10
     },
     "test_accuracy": 0.8619
 }
