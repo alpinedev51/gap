@@ -11,7 +11,7 @@ class AdversarialAttacker:
 
     def __init__(self, model: torch.nn.Module, device: str = "cpu"):
         self.model = model.to(device)
-        self.model.eval()  # Ensure model is in evaluation mode
+        self.model.eval()
         self.device = device
 
     def get_correct_subset_loader(self, dataloader: DataLoader) -> DataLoader:
