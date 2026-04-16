@@ -22,6 +22,9 @@ class AdversarialAttacker:
         correct_images = []
         correct_labels = []
 
+        total_samples = 0
+        total_correct = 0
+
         print("Filtering for correctly classified samples...")
         with torch.no_grad():
             for images, labels in dataloader:
@@ -31,10 +34,18 @@ class AdversarialAttacker:
 
                 mask = preds.eq(labels)
 
+                total_samples += labels.size(0)
+                total_correct += mask.sum().item()
+
                 if mask.any():
                     correct_images.append(images[mask].cpu())
                     correct_labels.append(labels[mask].cpu())
 
+        if total_samples == 0:
+            print("The DataLoader is empty.")
+
+        accuracy = total_correct / total_samples
+        print(f"Filtering complete. Accuracy {accuracy * 100:.2f}.")
         if not correct_images:
             raise ValueError(
                 "Model classified 0 images correctly in the provided loader."
