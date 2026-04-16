@@ -1,10 +1,10 @@
 {
     "model_config": {
-        "lr": 0.000108995648041844,
-        "channels": 64,
+        "lr": 0.0002480508929795373,
+        "channels": 48,
         "depth": 6,
-        "optimizer": "sgd",
-        "weight_decay": 0.0001
+        "optimizer": "adam",
+        "weight_decay": 0.0005
     },
-    "test_accuracy": 0.76555
+    "test_accuracy": 0.806131650135257
 }
