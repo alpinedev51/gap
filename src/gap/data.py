@@ -2,10 +2,21 @@ from torch.utils.data import Dataset
 import os
 from PIL import Image
 
-CAT_BREEDS = {"Abyssinian", "Bengal", "Birman", "Bombay", "British_Shorthair",
-    "Egyptian_Mau", "Maine_Coon", "Persian", "Ragdoll", "Russian_Blue",
-    "Siamese", "Sphynx"
+CAT_BREEDS = {
+    "Abyssinian",
+    "Bengal",
+    "Birman",
+    "Bombay",
+    "British_Shorthair",
+    "Egyptian_Mau",
+    "Maine_Coon",
+    "Persian",
+    "Ragdoll",
+    "Russian_Blue",
+    "Siamese",
+    "Sphynx",
 }
+
 
 class OxfordPetDataset(Dataset):
     def __init__(self, root, binary=False, transform=None):
@@ -31,8 +42,10 @@ class OxfordPetDataset(Dataset):
             # Map class → index
             self.class_to_idx = {cls: i for i, cls in enumerate(self.classes)}
 
-            self.labels = [self.class_to_idx[self._extract_class_name(f)] for f in self.files]
-        
+            self.labels = [
+                self.class_to_idx[self._extract_class_name(f)] for f in self.files
+            ]
+
     def _extract_class_name(self, filename):
         # Remove trailing "_<number>.jpg"
         base = filename.rsplit("_", 1)[0]

@@ -20,7 +20,7 @@ class ResidualBlock(nn.Module):
         if stride != 1 or in_c != out_c:
             self.shortcut = nn.Sequential(
                 nn.Conv2d(in_c, out_c, kernel_size=1, stride=stride, bias=False),
-                nn.BatchNorm2d(out_c)
+                nn.BatchNorm2d(out_c),
             )
 
     def forward(self, x):
@@ -54,7 +54,7 @@ class ScalableResNetLite(nn.Module):
         out = F.avg_pool2d(out, out.size()[3])
         out = out.view(out.size(0), -1)
         return self.linear(out)
-    
+
 
 class CustomCNN(nn.Module):
     """
