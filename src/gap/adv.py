@@ -25,6 +25,9 @@ class AdversarialAttacker:
         total_samples = 0
         total_correct = 0
 
+
+        self.model.eval()
+
         print("Filtering for correctly classified samples...")
         with torch.no_grad():
             for images, labels in dataloader:
@@ -128,7 +131,7 @@ class AdversarialAttacker:
         self, dataloader: DataLoader, attack_type: str = "pgd", **kwargs
     ) -> DataLoader:
         """
-        Takes a clean DataLoader and returns a new DataLoader containing adversarial examples.
+        Takes an original DataLoader and returns a new DataLoader containing adversarial examples.
         """
         adv_images_list = []
         labels_list = []

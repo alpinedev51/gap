@@ -1,7 +1,7 @@
-from typing import Tuple
-import numpy as np
+from typing import Optional, Tuple
 
 import matplotlib.pyplot as plt
+import numpy as np
 import torch
 
 
@@ -116,42 +116,74 @@ class SpectralAnalyzer:
         plt.ylabel("Vertical Frequency (v)")
         plt.show()
 
+
     def plot_2d_difference(
         self,
-        images_base: torch.Tensor,
-        images_adv: torch.Tensor,
-        title: str = "2D PSD Difference (Adv - Base)",
+        images_1: torch.Tensor,
+        images_2: torch.Tensor,
+        images_3: Optional[torch.Tensor],
+        title_21: str = "Mean 2D PSD Difference (Image2 - Image1)",
+        title_31: str = "Mean 2D PSD Difference (Image3 - Image1)",
+        title_32: str = "Mean 2D PSD Difference (Image3 - Image2)",
+        three_images: bool = True
     ):
-        """Plots the difference in PSD between adversarial and clean images."""
-        psd_base = self.compute_2d_psd(images_base).mean(dim=0)
-        psd_adv = self.compute_2d_psd(images_adv).mean(dim=0)
+        """Plots the difference in PSD between two images."""
+        psd_1 = self.compute_2d_psd(images_1).mean(dim=0)
+        psd_2 = self.compute_2d_psd(images_2).mean(dim=0)
 
-        log_base = self.get_log_psd(psd_base)
-        log_adv = self.get_log_psd(psd_adv)
+        log_1 = self.get_log_psd(psd_1)
+        log_2 = self.get_log_psd(psd_2)
 
-        diff = (log_adv - log_base).cpu().numpy()
+        diff_21 = (log_2 - log_1).cpu().numpy()
 
         # Center the colormap at 0 using the absolute max for symmetric scaling
-        max_abs = max(abs(diff.min()), abs(diff.max()))
+        max_abs_21 = max(abs(diff_21.min()), abs(diff_21.max()))
 
         plt.figure(figsize=(6, 6))
         # 'coolwarm' maps negative (less power) to blue, 0 to white, positive (more power) to red
-        plt.imshow(diff, cmap="coolwarm", vmin=-max_abs, vmax=max_abs)
+        plt.imshow(diff_21, cmap="coolwarm", vmin=-max_abs_21, vmax=max_abs_21)
         plt.colorbar(label="Power Difference (dB)")
-        plt.title(title)
+        plt.title(title_21)
         plt.xlabel("Horizontal Frequency (u)")
         plt.ylabel("Vertical Frequency (v)")
         plt.show()
 
+        if three_images:
+            psd_3 = self.compute_2d_psd(images_3).mean(dim=0)
+            log_3 = self.get_log_psd(psd_3)
+            diff_31 = (log_3 - log_1).cpu().numpy()
+            diff_32 = (log_3 - log_2).cpu().numpy()
+            max_abs_31 = max(abs(diff_31.min()), abs(diff_31.max()))
+            max_abs_32 = max(abs(diff_32.min()), abs(diff_32.max()))
+
+            plt.figure(figsize=(6, 6))
+            # 'coolwarm' maps negative (less power) to blue, 0 to white, positive (more power) to red
+            plt.imshow(diff_31, cmap="coolwarm", vmin=-max_abs_31, vmax=max_abs_31)
+            plt.colorbar(label="Power Difference (dB)")
+            plt.title(title_31)
+            plt.xlabel("Horizontal Frequency (u)")
+            plt.ylabel("Vertical Frequency (v)")
+            plt.show()
+
+            plt.figure(figsize=(6, 6))
+            # 'coolwarm' maps negative (less power) to blue, 0 to white, positive (more power) to red
+            plt.imshow(diff_32, cmap="coolwarm", vmin=-max_abs_32, vmax=max_abs_32)
+            plt.colorbar(label="Power Difference (dB)")
+            plt.title(title_32)
+            plt.xlabel("Horizontal Frequency (u)")
+            plt.ylabel("Vertical Frequency (v)")
+            plt.show()
+
+
     def plot_1d(
         self,
         images_dict: dict[str, torch.Tensor],
-        title: str = "1D Azimuthally Averaged PSD",
+        title: str = "Mean 1D Azimuthally Averaged PSD",
         zoom_high_freq=False,
     ):
         """
         Computes and plots 1D PSDs. Accepts a dictionary of labels and image tensors
-        so you can easily compare multiple datasets (e.g., Clean vs. PGD vs. FGSM).
+        so you can easily compare multiple datasets (e.g., Original vs. PGD vs. FGSM).
         """
         plt.figure(figsize=(12, 5))
         styles = [
@@ -159,6 +191,7 @@ class SpectralAnalyzer:
             {"color": "red", "ls": "--", "lw": 2},
             {"color": "orange", "ls": "-.", "lw": 2},
             {"color": "green", "ls": ":", "lw": 2},
+            {"color": "purple", "ls": "dashdot", "lw": 2},
         ]
 
         nyquist = min(self.H, self.W) // 2
@@ -192,45 +225,48 @@ class SpectralAnalyzer:
 
     def plot_1d_ratio(
         self,
-        images_base: torch.Tensor,
-        images_adv: torch.Tensor,
-        label: str = "PGD / Clean",
+        images_1: torch.Tensor,
+        images_2: torch.Tensor,
+        images_3: torch.Tensor,
+        label_21: str = "PGD / Original",
+        label_31: str = "Purified / Original",
         zoom_high_freq: bool = False,
+        three_images: bool = True
     ):
         """
-        Plots the ratio of adversarial power to clean power.
+        Plots the ratio of adversarial power to original power.
         """
         plt.figure(figsize=(10, 6))
 
-        _, psd_1d_base = self.analyze(images_base)
-        _, psd_1d_adv = self.analyze(images_adv)
+        _, psd_1d_1 = self.analyze(images_1)
+        _, psd_1d_2 = self.analyze(images_2)
 
-        mean_base = psd_1d_base.mean(dim=0).cpu().numpy()
-        mean_adv = psd_1d_adv.mean(dim=0).cpu().numpy()
+        mean_1 = psd_1d_1.mean(dim=0).cpu().numpy()
+        mean_2 = psd_1d_2.mean(dim=0).cpu().numpy()
 
         nyquist = min(self.H, self.W) // 2
-        mean_base = mean_base[: nyquist + 1]
-        mean_adv = mean_adv[: nyquist + 1]
+        mean_1 = mean_1[: nyquist + 1]
+        mean_2 = mean_2[: nyquist + 1]
 
-        ratio = mean_adv / (mean_base + 1e-12)
-        frequencies = np.arange(len(ratio))
+        ratio_21 = mean_2 / (mean_1 + 1e-12)
+        frequencies_21 = np.arange(len(ratio_21))
 
-        plt.plot(frequencies, ratio, color="crimson", lw=2.5, label=label)
+        plt.plot(frequencies_21, ratio_21, color="purple", lw=2.5, label=label_21)
 
         plt.axhline(
-            y=1.0, color="black", linestyle="--", alpha=0.6, label="Baseline (Clean)"
+            y=1.0, color="black", linestyle="--", alpha=0.6, label="Baseline (Original)"
         )
         plt.fill_between(
-            frequencies, 1.0, ratio, where=(ratio > 1.0), color="red", alpha=0.1
+            frequencies_21, 1.0, ratio_21, where=(ratio_21 > 1.0), color="blue", alpha=0.1
         )
 
         plt.title(
-            f"Spectral Power Ratio: {label}"
+            f"Mean Spectral Power Ratio: {label_21}"
             + (" (High-Freq Zoom)" if zoom_high_freq else ""),
             fontsize=14,
         )
         plt.xlabel("Spatial Frequency (Radial Distance)", fontsize=12)
-        plt.ylabel("Ratio (Adv Power / Clean Power)", fontsize=12)
+        plt.ylabel("Mean Ratio (Adv Power / Original Power)", fontsize=12)
         plt.grid(True, which="both", alpha=0.2)
         plt.legend(fontsize=11)
 
@@ -240,16 +276,64 @@ class SpectralAnalyzer:
         else:
             plt.xlim(0, nyquist)
 
-        y_max = np.percentile(ratio, 99) * 1.2
-        plt.ylim(0, max(2.0, y_max))
+        y_max_21 = np.percentile(ratio_21, 99) * 1.2
+        plt.ylim(0, max(2.0, y_max_21))
 
         plt.tight_layout()
         plt.show()
 
+        if three_images:
+            plt.figure(figsize=(10, 6))
+
+            _, psd_1d_1 = self.analyze(images_1)
+            _, psd_1d_3 = self.analyze(images_3)
+
+            mean_1 = psd_1d_1.mean(dim=0).cpu().numpy()
+            mean_3 = psd_1d_3.mean(dim=0).cpu().numpy()
+
+            nyquist = min(self.H, self.W) // 2
+            mean_1 = mean_1[: nyquist + 1]
+            mean_3 = mean_3[: nyquist + 1]
+
+            ratio_31 = mean_3 / (mean_1 + 1e-12)
+            frequencies_31 = np.arange(len(ratio_31))
+
+            plt.plot(frequencies_31, ratio_31, color="blue", lw=2.5, label=label_31)
+
+            plt.axhline(
+                y=1.0, color="black", linestyle="--", alpha=0.6, label="Baseline (Original)"
+            )
+            plt.fill_between(
+                frequencies_31, 1.0, ratio_31, where=(ratio_31 > 1.0), color="red", alpha=0.1
+            )
+
+            plt.title(
+                f"Mean Spectral Power Ratio: {label_31}"
+                + (" (High-Freq Zoom)" if zoom_high_freq else ""),
+                fontsize=14,
+            )
+            plt.xlabel("Spatial Frequency (Radial Distance)", fontsize=12)
+            plt.ylabel("Mean Ratio (Adv Power / Original Power)", fontsize=12)
+            plt.grid(True, which="both", alpha=0.2)
+            plt.legend(fontsize=11)
+
+            # Apply the requested zoom
+            if zoom_high_freq:
+                plt.xlim(nyquist // 2, nyquist)
+            else:
+                plt.xlim(0, nyquist)
+
+            y_max_31 = np.percentile(ratio_31, 99) * 1.2
+            plt.ylim(0, max(2.0, y_max_31))
+
+            plt.tight_layout()
+            plt.show()
+
+
     def print_spectral_stats(self, images_dict: dict[str, torch.Tensor]):
         """Calculates and prints average power in low vs high frequency domains."""
         print(
-            f"{'Dataset':<10} | {'Low-Freq Power (dB)':<20} | {'High-Freq Power (dB)':<20}"
+            f"{'Dataset':<10} | {'Mean Low-Freq Power (dB)':<20} | {'Mean High-Freq Power (dB)':<20}"
         )
         print("-" * 55)
 
