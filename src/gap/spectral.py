@@ -225,7 +225,10 @@ class SpectralAnalyzer:
 
         if zoom_high_freq:
             plt.xlim(nyquist // 2, nyquist)
-            plt.ylim(bottom=0, top=100)
+            top = 100
+            if self.H == 128:
+                top = 200
+            plt.ylim(bottom=0, top=top)
         else:
             plt.xlim(0, nyquist)
 
