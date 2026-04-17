@@ -266,7 +266,7 @@ class SpectralAnalyzer:
             fontsize=14,
         )
         plt.xlabel("Spatial Frequency (Radial Distance)", fontsize=12)
-        plt.ylabel("Mean Ratio (Adv Power / Original Power)", fontsize=12)
+        plt.ylabel("Mean Ratio (Averaged over Dataset)", fontsize=12)
         plt.grid(True, which="both", alpha=0.2)
         plt.legend(fontsize=11)
 
