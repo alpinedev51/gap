@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader, random_split
 from torchvision import transforms
 from tqdm import tqdm
 
-from data_loaders import get_pets_data, get_cifar10_data
+from gap.purification.data_loaders import get_pets_data, get_cifar10_data
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
