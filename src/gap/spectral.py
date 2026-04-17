@@ -102,7 +102,7 @@ class SpectralAnalyzer:
 
     # --- VISUALIZATION METHODS ---
 
-    def plot_2d(self, images: torch.Tensor, title: str = "Mean 2D Log PSD"):
+    def plot_2d(self, images: torch.Tensor, title: str = "Mean 2D Log PSD", dataset_name="cifar10"):
         """Computes and plots the mean 2D PSD of the provided images."""
         psd_2d = self.compute_2d_psd(images)
         mean_psd_2d = psd_2d.mean(dim=0)  # Average over batch for visualization
@@ -114,6 +114,7 @@ class SpectralAnalyzer:
         plt.title(title)
         plt.xlabel("Horizontal Frequency (u)")
         plt.ylabel("Vertical Frequency (v)")
+        plt.savefig(f"../figs/{dataset_name}/psd_2d/{title}.png")
         plt.show()
 
 
@@ -125,7 +126,9 @@ class SpectralAnalyzer:
         title_21: str = "Mean 2D PSD Difference (Image2 - Image1)",
         title_31: str = "Mean 2D PSD Difference (Image3 - Image1)",
         title_32: str = "Mean 2D PSD Difference (Image3 - Image2)",
-        three_images: bool = True
+        three_images: bool = True,
+        dataset_name="cifar10",
+        save=True
     ):
         """Plots the difference in PSD between two images."""
         psd_1 = self.compute_2d_psd(images_1).mean(dim=0)
@@ -146,6 +149,7 @@ class SpectralAnalyzer:
         plt.title(title_21)
         plt.xlabel("Horizontal Frequency (u)")
         plt.ylabel("Vertical Frequency (v)")
+        plt.savefig(f"../figs/{dataset_name}/psd_2d/{title_21}.png")
         plt.show()
 
         if three_images:
@@ -163,6 +167,7 @@ class SpectralAnalyzer:
             plt.title(title_31)
             plt.xlabel("Horizontal Frequency (u)")
             plt.ylabel("Vertical Frequency (v)")
+            plt.savefig(f"../figs/{dataset_name}/psd_1d/{title_31}.png")
             plt.show()
 
             plt.figure(figsize=(6, 6))
@@ -172,6 +177,7 @@ class SpectralAnalyzer:
             plt.title(title_32)
             plt.xlabel("Horizontal Frequency (u)")
             plt.ylabel("Vertical Frequency (v)")
+            plt.savefig(f"../figs/{dataset_name}/psd_1d/{title_32}.png")
             plt.show()
 
 
@@ -180,6 +186,8 @@ class SpectralAnalyzer:
         images_dict: dict[str, torch.Tensor],
         title: str = "Mean 1D Azimuthally Averaged PSD",
         zoom_high_freq=False,
+        dataset_name="cifar10",
+        save=True
     ):
         """
         Computes and plots 1D PSDs. Accepts a dictionary of labels and image tensors
@@ -208,7 +216,8 @@ class SpectralAnalyzer:
             plt.plot(frequencies, y_data, label=label, **style)
 
         plt.yscale("log")
-        plt.title(title + (" (High Freq Zoom)" if zoom_high_freq else ""), fontsize=14)
+        title += "(High Freq Zoom)" if zoom_high_freq else ""
+        plt.title(title, fontsize=14)
         plt.xlabel("Radial Spatial Frequency (r)", fontsize=12)
         plt.ylabel("Power (Log Scale)", fontsize=12)
         plt.grid(True, which="both", ls="-", alpha=0.3)
@@ -221,6 +230,7 @@ class SpectralAnalyzer:
             plt.xlim(0, nyquist)
 
         plt.tight_layout()
+        plt.savefig(f"../figs/{dataset_name}/psd_1d/{title}.png")
         plt.show()
 
     def plot_1d_ratio(
@@ -231,7 +241,9 @@ class SpectralAnalyzer:
         label_21: str = "PGD / Original",
         label_31: str = "Purified / Original",
         zoom_high_freq: bool = False,
-        three_images: bool = True
+        three_images: bool = True,
+        dataset_name="cifar10",
+        save=True
     ):
         """
         Plots the ratio of adversarial power to original power.
@@ -260,11 +272,9 @@ class SpectralAnalyzer:
             frequencies_21, 1.0, ratio_21, where=(ratio_21 > 1.0), color="blue", alpha=0.1
         )
 
-        plt.title(
-            f"Mean Spectral Power Ratio: {label_21}"
-            + (" (High-Freq Zoom)" if zoom_high_freq else ""),
-            fontsize=14,
-        )
+        title = f"Mean Spectral Power Ratio: {label_21}"
+        title += " (High-Freq Zoom)" if zoom_high_freq else ""
+        plt.title(title, fontsize=14)
         plt.xlabel("Spatial Frequency (Radial Distance)", fontsize=12)
         plt.ylabel("Mean Ratio (Averaged over Dataset)", fontsize=12)
         plt.grid(True, which="both", alpha=0.2)
@@ -280,6 +290,7 @@ class SpectralAnalyzer:
         plt.ylim(0, max(2.0, y_max_21))
 
         plt.tight_layout()
+        plt.savefig(f"../figs/{dataset_name}/psd_1d/{title.replace(" / ", "_over_")}.png")
         plt.show()
 
         if three_images:
@@ -307,11 +318,9 @@ class SpectralAnalyzer:
                 frequencies_31, 1.0, ratio_31, where=(ratio_31 > 1.0), color="red", alpha=0.1
             )
 
-            plt.title(
-                f"Mean Spectral Power Ratio: {label_31}"
-                + (" (High-Freq Zoom)" if zoom_high_freq else ""),
-                fontsize=14,
-            )
+            title = f"Mean Spectral Power Ratio: {label_31}"
+            title += " (High-Freq Zoom)" if zoom_high_freq else ""
+            plt.title(title,fontsize=14)
             plt.xlabel("Spatial Frequency (Radial Distance)", fontsize=12)
             plt.ylabel("Mean Ratio (Adv Power / Original Power)", fontsize=12)
             plt.grid(True, which="both", alpha=0.2)
@@ -327,6 +336,7 @@ class SpectralAnalyzer:
             plt.ylim(0, max(2.0, y_max_31))
 
             plt.tight_layout()
+            plt.savefig(f"../figs/{dataset_name}/psd_1d/{title.replace(" / ", "_over_")}.png")
             plt.show()
 
 
